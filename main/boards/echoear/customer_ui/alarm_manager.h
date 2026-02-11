@@ -17,9 +17,9 @@ extern "C" {
 #endif
 
 // Font declarations
-LV_FONT_DECLARE(lv_font_montserrat_20);
-LV_FONT_DECLARE(lv_font_montserrat_32);
-LV_FONT_DECLARE(lv_font_montserrat_40);
+LV_FONT_DECLARE(font_puhui_20_4);
+LV_FONT_DECLARE(font_puhui_20_4);
+LV_FONT_DECLARE(font_puhui_20_4);
 
 // Image declarations
 LV_IMG_DECLARE(time_start);

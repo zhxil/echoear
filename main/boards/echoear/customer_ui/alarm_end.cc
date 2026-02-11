@@ -117,14 +117,14 @@ lv_obj_t *alarm_time_up_create_with_parent(lv_obj_t *parent)
 
     lv_obj_t *remind_label = lv_label_create(s_time_up_ui.remind_later_btn);
     lv_label_set_text(remind_label, "Snooze 5 min");
-    lv_obj_set_style_text_font(remind_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(remind_label, &font_puhui_20_4, 0);
     lv_obj_set_style_text_color(remind_label, lv_color_white(), 0);
     lv_obj_center(remind_label);
 
     /* Create time label above remind later button */
     s_time_up_ui.remind_later_time_label = lv_label_create(s_time_up_ui.container);
     lv_label_set_text(s_time_up_ui.remind_later_time_label, "");
-    lv_obj_set_style_text_font(s_time_up_ui.remind_later_time_label, &lv_font_montserrat_40, 0);
+    lv_obj_set_style_text_font(s_time_up_ui.remind_later_time_label, &font_puhui_20_4, 0);
     lv_obj_set_style_text_color(s_time_up_ui.remind_later_time_label, lv_color_white(), 0);
     lv_obj_set_style_text_align(s_time_up_ui.remind_later_time_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(s_time_up_ui.remind_later_time_label, LV_ALIGN_CENTER, 0, -120);
@@ -140,7 +140,7 @@ lv_obj_t *alarm_time_up_create_with_parent(lv_obj_t *parent)
 
     s_time_up_ui.slider_label = lv_label_create(s_time_up_ui.slider_container);
     lv_label_set_text(s_time_up_ui.slider_label, "Slide to Stop");
-    lv_obj_set_style_text_font(s_time_up_ui.slider_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(s_time_up_ui.slider_label, &font_puhui_20_4, 0);
     lv_obj_set_style_text_color(s_time_up_ui.slider_label, lv_color_white(), 0);
     lv_obj_set_style_text_align(s_time_up_ui.slider_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(s_time_up_ui.slider_label, LV_ALIGN_CENTER, 0, 0);

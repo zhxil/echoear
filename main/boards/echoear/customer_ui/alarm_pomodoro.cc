@@ -385,9 +385,9 @@ lv_obj_t *alarm_pomodoro_create_with_parent(lv_obj_t *parent)
                          LV_GRID_ALIGN_START, 2, 1,
                          LV_GRID_ALIGN_CENTER, 0, 1);
 
-    lv_obj_set_style_text_font(s_pomodoro_ui.time_min_label, &lv_font_montserrat_40, 0);
-    lv_obj_set_style_text_font(s_pomodoro_ui.time_colon_label, &lv_font_montserrat_40, 0);
-    lv_obj_set_style_text_font(s_pomodoro_ui.time_sec_label, &lv_font_montserrat_40, 0);
+    lv_obj_set_style_text_font(s_pomodoro_ui.time_min_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_pomodoro_ui.time_colon_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_pomodoro_ui.time_sec_label, &font_puhui_20_4, 0);
 
     lv_obj_set_style_text_color(s_pomodoro_ui.time_min_label, lv_color_white(), 0);
     lv_obj_set_style_text_color(s_pomodoro_ui.time_colon_label, lv_color_white(), 0);

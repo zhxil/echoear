@@ -426,7 +426,7 @@ lv_obj_t *alarm_sleep_24h_create_with_parent(lv_obj_t *parent)
     lv_obj_set_grid_cell(s_sleep_24h_ui.start_colon_label,
                          LV_GRID_ALIGN_CENTER, 1, 1,
                          LV_GRID_ALIGN_CENTER, 0, 1);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.start_colon_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.start_colon_label, &font_puhui_20_4, 0);
     lv_obj_set_style_text_color(s_sleep_24h_ui.start_colon_label, lv_color_white(), 0);
 
     s_sleep_24h_ui.start_min_label = lv_label_create(s_sleep_24h_ui.time_container);
@@ -462,7 +462,7 @@ lv_obj_t *alarm_sleep_24h_create_with_parent(lv_obj_t *parent)
     lv_obj_set_grid_cell(s_sleep_24h_ui.end_colon_label,
                          LV_GRID_ALIGN_CENTER, 1, 1,
                          LV_GRID_ALIGN_CENTER, 2, 1);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.end_colon_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.end_colon_label, &font_puhui_20_4, 0);
     lv_obj_set_style_text_color(s_sleep_24h_ui.end_colon_label, lv_color_white(), 0);
 
     s_sleep_24h_ui.end_min_label = lv_label_create(s_sleep_24h_ui.time_container);
@@ -480,13 +480,13 @@ lv_obj_t *alarm_sleep_24h_create_with_parent(lv_obj_t *parent)
                          LV_GRID_ALIGN_START, 3, 1,
                          LV_GRID_ALIGN_CENTER, 2, 1);
 
-    lv_obj_set_style_text_font(s_sleep_24h_ui.start_hour_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.start_min_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.start_ampm_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.center_sep_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.end_hour_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.end_min_label, &lv_font_montserrat_20, 0);
-    lv_obj_set_style_text_font(s_sleep_24h_ui.end_ampm_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.start_hour_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.start_min_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.start_ampm_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.center_sep_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.end_hour_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.end_min_label, &font_puhui_20_4, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.end_ampm_label, &font_puhui_20_4, 0);
 
     lv_obj_set_style_text_color(s_sleep_24h_ui.start_hour_label, lv_color_white(), 0);
     lv_obj_set_style_text_color(s_sleep_24h_ui.start_min_label, lv_color_white(), 0);
@@ -501,7 +501,7 @@ lv_obj_t *alarm_sleep_24h_create_with_parent(lv_obj_t *parent)
 
     s_sleep_24h_ui.duration_label = lv_label_create(s_sleep_24h_ui.container);
     lv_label_set_text(s_sleep_24h_ui.duration_label, "9.5 hr");
-    lv_obj_set_style_text_font(s_sleep_24h_ui.duration_label, &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_font(s_sleep_24h_ui.duration_label, &font_puhui_20_4, 0);
     lv_obj_set_style_text_color(s_sleep_24h_ui.duration_label, lv_color_white(), 0);
     lv_obj_center(s_sleep_24h_ui.duration_label);
     lv_obj_add_flag(s_sleep_24h_ui.duration_label, LV_OBJ_FLAG_HIDDEN);
