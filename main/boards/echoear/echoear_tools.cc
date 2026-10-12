@@ -44,8 +44,10 @@ void EchoEarTools::Initialize(EspS3Cat* board)
             action_value = ECHO_BASE_CMD_SET_ACTION_CAT_NUZZLE;
         } else if (action == "calibrate")
         {
-            echo_base_control_set_calibrate();
             BaseControl* base_control = board->GetBaseControl();
+            if (base_control == nullptr) return false;
+            base_control->PrepareCalibration();
+            if (echo_base_control_set_calibrate() != ESP_OK) return false;
             if (base_control != nullptr) {
                 bool completed = base_control->WaitForCalibrationComplete(30000);
                 if (!completed) {

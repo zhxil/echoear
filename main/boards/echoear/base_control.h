@@ -23,6 +23,7 @@ public:
 
     // Wait for calibration to complete (until ECHO_BASE_CMD_RECV_CALIBRATE_STEP2)
     // Returns true if calibration completed, false if timeout
+    void PrepareCalibration() { if (calibrate_semaphore_) xSemaphoreTake(calibrate_semaphore_, 0); }
     bool WaitForCalibrationComplete(int timeout_ms = 30000);
 
 private:

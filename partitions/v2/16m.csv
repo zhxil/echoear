@@ -1,10 +1,9 @@
-# ESP-IDF Partition Table
-# Name,   Type, SubType, Offset,  Size, Flags
-nvs,      data, nvs,     0x9000,    0x4000,
-otadata,  data, ota,     0xd000,    0x2000,
-phy_init, data, phy,     0xf000,    0x1000,
-ota_0,    app,  ota_0,   ,          5300k,
-#ota_1,    app,  ota_1,   ,          4580k,
-ota_1,    app,  ota_1,   ,          3580k,
-assets,   data, spiffs,  ,          5500K,
-model,    data, spiffs,  ,          300K,
+# ESP-IDF Partition Table - EchoEar 16 MiB, symmetric OTA slots
+# Name,   Type, SubType, Offset,   Size,      Flags
+nvs,      data, nvs,     0x9000,   0x4000,
+otadata,  data, ota,     0xd000,   0x2000,
+phy_init, data, phy,     0xf000,   0x1000,
+ota_0,    app,  ota_0,   0x10000,  0x600000,
+ota_1,    app,  ota_1,   0x610000, 0x600000,
+assets,   data, spiffs,  0xc10000, 0x380000,
+model,    data, spiffs,  0xf90000, 300K,

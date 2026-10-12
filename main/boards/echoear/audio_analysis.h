@@ -4,6 +4,7 @@
 #include "beat_detection.h"
 #include "beat_detection_config.h"
 #include "audio_doa_app.h"
+#include <atomic>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
@@ -46,7 +47,8 @@ public:
 
 private:
     // Mode
-    AudioAnalysisMode mode_ = AudioAnalysisMode::DOA_FOLLOW;
+    std::atomic<AudioAnalysisMode> mode_{AudioAnalysisMode::DOA_FOLLOW};
+    std::atomic<bool> vad_active_{false};
 
     // Beat detection
     beat_detection_handle_t beat_detection_handle_;

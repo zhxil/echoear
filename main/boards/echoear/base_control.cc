@@ -79,6 +79,9 @@ void BaseControl::Initialize()
 
 void BaseControl::HandleCommand(uint8_t cmd, uint8_t *data, int data_len)
 {
+    if (data == nullptr || data_len < 2) {
+        return;
+    }
     Display* display = board_->GetDisplay();
     if (display == nullptr) {
         return;
@@ -126,11 +129,11 @@ void BaseControl::HandleCommand(uint8_t cmd, uint8_t *data, int data_len)
                 break;
             case ECHO_BASE_CMD_RECV_SWITCH_FISH_ATTACHED:
                 ESP_LOGI(TAG, "Fish attached");
-                emote_display->InsertAnimDialog("eat", 3500);
+                if (emote_display != nullptr) emote_display->InsertAnimDialog("eat", 3500);
                 break;
             case ECHO_BASE_CMD_RECV_SWITCH_PAIR_DETECT:
                 ESP_LOGI(TAG, "Pair detect");
-                emote_display->SetEmotion("happy");
+                if (emote_display != nullptr) emote_display->SetEmotion("happy");
                 echo_base_control_set_action(ECHO_BASE_CMD_SET_ACTION_LOOK_AROUND);
                 break;
             default:
@@ -169,7 +172,7 @@ void BaseControl::HandleCommand(uint8_t cmd, uint8_t *data, int data_len)
 
             if (was_offline) {
                 ESP_LOGI(TAG, "Echo base connected (reinserted)");
-                emote_display->InsertAnimDialog("insert", 3000);
+                if (emote_display != nullptr) emote_display->InsertAnimDialog("insert", 3000);
             }
             break;
         }
@@ -212,8 +215,7 @@ bool BaseControl::WaitForCalibrationComplete(int timeout_ms)
         return false;
     }
 
-    // Clear semaphore first in case it was already set
-    xSemaphoreTake(calibrate_semaphore_, 0);
+    // The semaphore is cleared before sending the request.
 
     // Wait for calibration to complete
     TickType_t timeout_ticks = pdMS_TO_TICKS(timeout_ms);

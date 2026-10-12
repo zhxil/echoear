@@ -7,6 +7,7 @@
 #include "device_state.h"
 #include <esp_log.h>
 #include <cstring>
+#include <cmath>
 #include "echo_base_control.h"
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -47,7 +48,7 @@ void AudioAnalysis::Initialize()
     // Initialize audio DOA
     audio_doa_app_config_t doa_app_cfg = {
         .audio_doa_result_callback = DoaTrackerResultCallback,
-        .audio_doa_result_callback_ctx = NULL,
+        .audio_doa_result_callback_ctx = this,
     };
     ret = audio_doa_app_create(&doa_app_handle_, &doa_app_cfg);
     if (ret != ESP_OK) {
@@ -80,8 +81,13 @@ void AudioAnalysis::BeatDetectionResultCallback(beat_detection_result_t result, 
 
 void AudioAnalysis::DoaTrackerResultCallback(float angle, void *ctx)
 {
+    auto* self = static_cast<AudioAnalysis*>(ctx);
+    if (!self || self->mode_ != AudioAnalysisMode::DOA_FOLLOW || !self->vad_active_ ||
+        Application::GetInstance().GetDeviceState() == kDeviceStateSpeaking ||
+        !std::isfinite(angle) || angle < 0.0f || angle > 180.0f) return;
+    if (std::fabs(angle - 90.0f) < 5.0f) return;
     ESP_LOGI(TAG, "Estimated direction: %.2f", angle);
-    echo_base_control_set_angle(angle);
+    echo_base_control_set_angle(static_cast<int>(std::lround(angle)));
 }
 
 void AudioAnalysis::SetAfeDataProcessCallback()
@@ -114,6 +120,8 @@ void AudioAnalysis::OnAfeDataProcessed(const int16_t* audio_data, size_t total_b
 
 void AudioAnalysis::OnVadStateChange(bool speaking)
 {
+    vad_active_ = speaking;
+    if (!doa_app_handle_) return;
     if (speaking) {
         ESP_LOGD(TAG, "active");
         audio_doa_app_set_vad_detect(doa_app_handle_, true);
@@ -140,10 +148,11 @@ void AudioAnalysis::SetMode(AudioAnalysisMode mode)
 
 void AudioAnalysis::OnAudioDataProcessed(const int16_t* audio_data, size_t bytes_per_channel, size_t channels)
 {
+    if (!audio_data || channels != 2 || bytes_per_channel == 0 || bytes_per_channel % sizeof(int16_t)) return;
     //Incoming: bytes=1024, channels=2
     // ESP_LOGI(TAG, "Incoming: bytes=%d, channels=%d", bytes_per_channel, channels);
 
-    switch (mode_) {
+    switch (mode_.load()) {
     case AudioAnalysisMode::BEAT_DETECTION:
         // Feed to beat detection
         if (beat_detection_handle_ != nullptr) {

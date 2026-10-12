@@ -176,13 +176,13 @@ static esp_err_t echo_base_control_send_command_frame(uint8_t cmd, uint16_t data
 
     printf("Output: %02X %02X %02X %02X %02X %02X %02X %02X\n", 
            frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6], frame[7]);
-    uart_write_bytes(ctx->uart_num, (const char *)frame, sizeof(frame));
-
-    return ESP_OK;
+    return uart_write_bytes(ctx->uart_num, (const char *)frame, sizeof(frame)) == sizeof(frame)
+        ? ESP_OK : ESP_FAIL;
 }
 
 esp_err_t echo_base_control_set_angle(int angle)
 {
+    if (angle < 0 || angle > 180) return ESP_ERR_INVALID_ARG;
     ESP_LOGI(TAG, "Set echo base angle: %d", angle);
     return echo_base_control_send_command_frame(ECHO_BASE_CMD_SET_ANGLE, angle);
 }
