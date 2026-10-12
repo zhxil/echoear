@@ -6,7 +6,9 @@ import tempfile
 import sys
 
 body=Path(sys.argv[1]) if len(sys.argv)>1 else Path(__file__).resolve().parents[1]
-root=body.parent/'esp-echoear-base/software/echoear_rotating_base'
+base_repo=Path(sys.argv[2]) if len(sys.argv)>2 else body.parent/'esp-echoear-base'
+root=base_repo/'software/echoear_rotating_base'
+if not (root/'components/control_serial/control_serial.c').exists(): root=base_repo
 source=(root/'components/control_serial/control_serial.c').read_text(encoding='utf-8')
 doa_source=(body/'components/audio_doa/audio_doa_tracker.c').read_text(encoding='utf-8')
 qa=doa_source.index('static float quantize_angle(float angle)')
