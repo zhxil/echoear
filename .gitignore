@@ -16,3 +16,4 @@ main/assets/lang_config.h
 # *.bin
 mmap_generate_*.h
 .clangd
+build-validation.log
