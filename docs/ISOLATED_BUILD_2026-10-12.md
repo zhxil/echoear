@@ -18,7 +18,7 @@
 | assets | 0xc10000 | 3.5 MiB |
 | model | 0xf90000 | 300 KiB |
 
-最后一个分区结束于 `0xfdb000`，位于 16 MiB Flash 范围内。现有资源 2,732,489 字节与模型 291,066 字节完整保留；SHA256 分别为 `0a6e6a6c8ce73d91e9ceeef3de3eb7450b35f40e4c42ab2850a1c15257214b711` 和 `7183e030be52a41b0147d4c2ba05537c59d28c08992f5c2c623df0c75da5fe89`。
+最后一个分区结束于 `0xfdb000`，位于 16 MiB Flash 范围内。现有资源 2,732,489 字节与模型 291,066 字节完整保留；SHA256 分别为 `0a6e6a6c8ce73d91e9ceef3de3eb7450b35f40e4c42ab2850a1c15257214b711` 和 `7183e030be52a41b0147d4c2ba05537c59d28c08992f5c2c623df0c75da5fe89`。
 
 原表的 ota_1 只有 0x37f000 字节，小于当前约 5.03 MiB 固件。新表两个 OTA 分区相同，给两端升级都留出约 1 MiB 空间。构建验证脚本 `scripts/check_echoear_partitions.py` 读取生成的二进制分区表，核对容量、重叠、地址、Flash 上限和现有资源哈希。
 

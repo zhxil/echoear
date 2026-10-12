@@ -28,7 +28,7 @@ for name in ['ota_0','ota_1']:
     print(f'{name}: {firmware} / {parts[name]["size"]} bytes; {parts[name]["size"]-firmware} bytes free')
 flash=json.loads((build/'flasher_args.json').read_text())
 for name,expected_hash in [
-    ('assets','0a6e6a6c8ce73d91e9ceeef3de3eb7450b35f40e4c42ab2850a1c15257214b711'),
+    ('assets','0a6e6a6c8ce73d91e9ceef3de3eb7450b35f40e4c42ab2850a1c15257214b711'),
     ('model','7183e030be52a41b0147d4c2ba05537c59d28c08992f5c2c623df0c75da5fe89')]:
     entry=flash[name]
     file=(build/entry['file']).resolve()
