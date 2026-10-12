@@ -1,172 +1,64 @@
-# An MCP-based Chatbot
+# echoear · 语音交互本体
 
-(English | [中文](README_zh.md) | [日本語](README_ja.md))
+基于 ESP32-S3 的 EchoEar 本体固件，承担语音采集、唤醒与对话、表情显示、声源方向估计（DOA）以及旋转底座控制。项目沿用小智固件 2.0.5 的基础代码，针对本体与底座的联动进行维护。
 
-## Introduction
+配套底座：[zhxil/rotating_base](https://github.com/zhxil/rotating_base)。本体通过 UART 向底座发送方向和动作指令，接收心跳、动作完成和磁滑块事件。
 
-👉 [Human: Give AI a camera vs AI: Instantly finds out the owner hasn't washed hair for three days【bilibili】](https://www.bilibili.com/video/BV1bpjgzKEhd/)
+## 版本选择
 
-👉 [Handcraft your AI girlfriend, beginner's guide【bilibili】](https://www.bilibili.com/video/BV1XnmFYLEJN/)
+| 分支 | 用途 |
+|---|---|
+| `main` | 修改前的本地基线，加上本仓库说明；保留原有业务代码和板型设置 |
+| `codex/echoear-baseline-20261012` | 保存的回退基线，含本地底座组件依赖修复 |
+| `codex/echoear-firmware-ota-fix-20261012` | 本体／底座协议修复、DOA 跟踪改进与双 OTA 分区调整 |
 
-As a voice interaction entry, the XiaoZhi AI chatbot leverages the AI capabilities of large models like Qwen / DeepSeek, and achieves multi-terminal control via the MCP protocol.
+联调时建议本体和底座都使用修复分支。基线保留原行为，不包含后续固件修复。
 
-<img src="docs/mcp-based-graph.jpg" alt="Control everything via MCP" width="320">
+## 本体配置与代码入口
 
-## Version Notes
+- 芯片：ESP32-S3；Flash：16 MiB；本次验证环境：ESP-IDF 5.5.4。
+- 板型：`CONFIG_BOARD_TYPE_ECHOEAR`；当前本地配置选择 PCB V1.2，见 `main/boards/echoear/config.h`。
+- 板级初始化与显示：`main/boards/echoear/echoear.cc`。
+- 音频分析与 DOA 跟随：`main/boards/echoear/audio_analysis.cc`。
+- 底座状态和校准：`main/boards/echoear/base_control.cc`。
+- 底座 UART 协议：`components/echoear_base_control`。
 
-The current v2 version is incompatible with the v1 partition table, so it is not possible to upgrade from v1 to v2 via OTA. For partition table details, see [partitions/v2/README.md](partitions/v2/README.md).
+硬件接口在本次维护中没有调整。UART 为 115200、8N1；帧格式为 `AA 55 LEN_H LEN_L CMD DATA... CHECKSUM`，长度包含命令字，校验为命令与数据的逐字节累加低八位。
 
-All hardware running v1 can be upgraded to v2 by manually flashing the firmware.
+## 获取与构建
 
-The stable version of v1 is 1.9.2. You can switch to v1 by running `git checkout v1`. The v1 branch will be maintained until February 2026.
+```powershell
+git clone --branch codex/echoear-firmware-ota-fix-20261012 https://github.com/zhxil/echoear.git
+cd echoear
+# 先激活本机 ESP-IDF 5.5.4 环境
+idf.py set-target esp32s3
+idf.py menuconfig
+idf.py build
+```
 
-### Features Implemented
+在 menuconfig 中选择 EchoEar 板型、16 MiB Flash、自定义分区表 `partitions/v2/16m.csv`，以及自定义资源文件 `wn9_nihaoxiaozhi_tts-font_puhui_common_20_4-echoear.bin`；同时确认实际设备的屏幕、音频和唤醒模型配置。`sdkconfig` 和 `dependencies.lock` 未纳入 Git，首次克隆需要配置和解析依赖。
 
-- Wi-Fi / ML307 Cat.1 4G
-- Offline voice wake-up [ESP-SR](https://github.com/espressif/esp-sr)
-- Supports two communication protocols ([Websocket](docs/websocket.md) or MQTT+UDP)
-- Uses OPUS audio codec
-- Voice interaction based on streaming ASR + LLM + TTS architecture
-- Speaker recognition, identifies the current speaker [3D Speaker](https://github.com/modelscope/3D-Speaker)
-- OLED / LCD display, supports emoji display
-- Battery display and power management
-- Multi-language support (Chinese, English, Japanese)
-- Supports ESP32-C3, ESP32-S3, ESP32-P4 chip platforms
-- Device-side MCP for device control (Speaker, LED, Servo, GPIO, etc.)
-- Cloud-side MCP to extend large model capabilities (smart home control, PC desktop operation, knowledge search, email, etc.)
-- Customizable wake words, fonts, emojis, and chat backgrounds with online web-based editing ([Custom Assets Generator](https://github.com/78/xiaozhi-assets-generator))
+Windows 验证机使用安装器提供的 `C:\Espressif\tools\Microsoft.v5.5.4.PowerShell_profile.ps1` 激活环境。其他机器应使用自己的 SDK 安装路径。
 
-## Hardware
+## 修复分支的 OTA 与资源布局
 
-### Breadboard DIY Practice
+| 分区 | 起始地址 | 容量 |
+|---|---|---|
+| ota_0 | `0x10000` | 6 MiB |
+| ota_1 | `0x610000` | 6 MiB |
+| assets | `0xc10000` | 3.5 MiB |
+| model | `0xf90000` | 300 KiB |
 
-See the Feishu document tutorial:
+现有资源文件完整保留。已验证固件为 5,272,000 字节，每个 OTA 分区剩余 1,019,456 字节。新布局需要匹配的分区表和资源地址；普通应用 OTA 不会迁移旧分区表。
 
-👉 ["XiaoZhi AI Chatbot Encyclopedia"](https://ccnphfhqs21z.feishu.cn/wiki/F5krwD16viZoF0kKkvDcrZNYnhb?from=from_copylink)
+## DOA 与验证状态
 
-Breadboard demo:
+修复分支保留底层声源估计与原有声学补偿，修正音频短读和滤波启动偏差；采用 5°量化，限制无语音、非跟随模式和本体播音时的控制输出。进一步校准麦克风间距、通道延时、噪声筛选和角度补偿需要双通道录音与真实角度标注。
 
-![Breadboard Demo](docs/v1/wiring2.jpg)
+2026-10-12 已完成本体和底座编译验证、15 项真实 C 串口解析回归、721 项量化测试，以及分区容量、地址和资源哈希校验。没有烧录或实际电机／定位精度验收。
 
-### Supports 70+ Open Source Hardware (Partial List)
+修复分支中的详细记录：`docs/BASE_DOA_FIX_2026-10-12.md`、`docs/ISOLATED_BUILD_2026-10-12.md`。回归入口：`scripts/test_base_integration.py`、`scripts/check_echoear_partitions.py`；前者需要 Windows Visual Studio C 编译工具，后者需要已有构建产物。
 
-- <a href="https://oshwhub.com/li-chuang-kai-fa-ban/li-chuang-shi-zhan-pai-esp32-s3-kai-fa-ban" target="_blank" title="LiChuang ESP32-S3 Development Board">LiChuang ESP32-S3 Development Board</a>
-- <a href="https://github.com/espressif/esp-box" target="_blank" title="Espressif ESP32-S3-BOX3">Espressif ESP32-S3-BOX3</a>
-- <a href="https://docs.m5stack.com/zh_CN/core/CoreS3" target="_blank" title="M5Stack CoreS3">M5Stack CoreS3</a>
-- <a href="https://docs.m5stack.com/en/atom/Atomic%20Echo%20Base" target="_blank" title="AtomS3R + Echo Base">M5Stack AtomS3R + Echo Base</a>
-- <a href="https://gf.bilibili.com/item/detail/1108782064" target="_blank" title="Magic Button 2.4">Magic Button 2.4</a>
-- <a href="https://www.waveshare.net/shop/ESP32-S3-Touch-AMOLED-1.8.htm" target="_blank" title="Waveshare ESP32-S3-Touch-AMOLED-1.8">Waveshare ESP32-S3-Touch-AMOLED-1.8</a>
-- <a href="https://github.com/Xinyuan-LilyGO/T-Circle-S3" target="_blank" title="LILYGO T-Circle-S3">LILYGO T-Circle-S3</a>
-- <a href="https://oshwhub.com/tenclass01/xmini_c3" target="_blank" title="XiaGe Mini C3">XiaGe Mini C3</a>
-- <a href="https://oshwhub.com/movecall/cuican-ai-pendant-lights-up-y" target="_blank" title="Movecall CuiCan ESP32S3">CuiCan AI Pendant</a>
-- <a href="https://github.com/WMnologo/xingzhi-ai" target="_blank" title="WMnologo-Xingzhi-1.54">WMnologo-Xingzhi-1.54TFT</a>
-- <a href="https://www.seeedstudio.com/SenseCAP-Watcher-W1-A-p-5979.html" target="_blank" title="SenseCAP Watcher">SenseCAP Watcher</a>
-- <a href="https://www.bilibili.com/video/BV1BHJtz6E2S/" target="_blank" title="ESP-HI Low Cost Robot Dog">ESP-HI Low Cost Robot Dog</a>
+## 来源与许可
 
-<div style="display: flex; justify-content: space-between;">
-  <a href="docs/v1/lichuang-s3.jpg" target="_blank" title="LiChuang ESP32-S3 Development Board">
-    <img src="docs/v1/lichuang-s3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/espbox3.jpg" target="_blank" title="Espressif ESP32-S3-BOX3">
-    <img src="docs/v1/espbox3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/m5cores3.jpg" target="_blank" title="M5Stack CoreS3">
-    <img src="docs/v1/m5cores3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/atoms3r.jpg" target="_blank" title="AtomS3R + Echo Base">
-    <img src="docs/v1/atoms3r.jpg" width="240" />
-  </a>
-  <a href="docs/v1/magiclick.jpg" target="_blank" title="Magic Button 2.4">
-    <img src="docs/v1/magiclick.jpg" width="240" />
-  </a>
-  <a href="docs/v1/waveshare.jpg" target="_blank" title="Waveshare ESP32-S3-Touch-AMOLED-1.8">
-    <img src="docs/v1/waveshare.jpg" width="240" />
-  </a>
-  <a href="docs/v1/lilygo-t-circle-s3.jpg" target="_blank" title="LILYGO T-Circle-S3">
-    <img src="docs/v1/lilygo-t-circle-s3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/xmini-c3.jpg" target="_blank" title="XiaGe Mini C3">
-    <img src="docs/v1/xmini-c3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/movecall-cuican-esp32s3.jpg" target="_blank" title="CuiCan">
-    <img src="docs/v1/movecall-cuican-esp32s3.jpg" width="240" />
-  </a>
-  <a href="docs/v1/wmnologo_xingzhi_1.54.jpg" target="_blank" title="WMnologo-Xingzhi-1.54">
-    <img src="docs/v1/wmnologo_xingzhi_1.54.jpg" width="240" />
-  </a>
-  <a href="docs/v1/sensecap_watcher.jpg" target="_blank" title="SenseCAP Watcher">
-    <img src="docs/v1/sensecap_watcher.jpg" width="240" />
-  </a>
-  <a href="docs/v1/esp-hi.jpg" target="_blank" title="ESP-HI Low Cost Robot Dog">
-    <img src="docs/v1/esp-hi.jpg" width="240" />
-  </a>
-</div>
-
-## Software
-
-### Firmware Flashing
-
-For beginners, it is recommended to use the firmware that can be flashed without setting up a development environment.
-
-The firmware connects to the official [xiaozhi.me](https://xiaozhi.me) server by default. Personal users can register an account to use the Qwen real-time model for free.
-
-👉 [Beginner's Firmware Flashing Guide](https://ccnphfhqs21z.feishu.cn/wiki/Zpz4wXBtdimBrLk25WdcXzxcnNS)
-
-### Development Environment
-
-- Cursor or VSCode
-- Install ESP-IDF plugin, select SDK version 5.4 or above
-- Linux is better than Windows for faster compilation and fewer driver issues
-- This project uses Google C++ code style, please ensure compliance when submitting code
-
-### Developer Documentation
-
-- [Custom Board Guide](docs/custom-board.md) - Learn how to create custom boards for XiaoZhi AI
-- [MCP Protocol IoT Control Usage](docs/mcp-usage.md) - Learn how to control IoT devices via MCP protocol
-- [MCP Protocol Interaction Flow](docs/mcp-protocol.md) - Device-side MCP protocol implementation
-- [MQTT + UDP Hybrid Communication Protocol Document](docs/mqtt-udp.md)
-- [A detailed WebSocket communication protocol document](docs/websocket.md)
-
-## Large Model Configuration
-
-If you already have a XiaoZhi AI chatbot device and have connected to the official server, you can log in to the [xiaozhi.me](https://xiaozhi.me) console for configuration.
-
-👉 [Backend Operation Video Tutorial (Old Interface)](https://www.bilibili.com/video/BV1jUCUY2EKM/)
-
-## Related Open Source Projects
-
-For server deployment on personal computers, refer to the following open-source projects:
-
-- [xinnan-tech/xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) Python server
-- [joey-zhou/xiaozhi-esp32-server-java](https://github.com/joey-zhou/xiaozhi-esp32-server-java) Java server
-- [AnimeAIChat/xiaozhi-server-go](https://github.com/AnimeAIChat/xiaozhi-server-go) Golang server
-
-Other client projects using the XiaoZhi communication protocol:
-
-- [huangjunsen0406/py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) Python client
-- [TOM88812/xiaozhi-android-client](https://github.com/TOM88812/xiaozhi-android-client) Android client
-- [100askTeam/xiaozhi-linux](http://github.com/100askTeam/xiaozhi-linux) Linux client by 100ask
-- [78/xiaozhi-sf32](https://github.com/78/xiaozhi-sf32) Bluetooth chip firmware by Sichuan
-- [QuecPython/solution-xiaozhiAI](https://github.com/QuecPython/solution-xiaozhiAI) QuecPython firmware by Quectel
-
-Custom Assets Tools:
-
-- [78/xiaozhi-assets-generator](https://github.com/78/xiaozhi-assets-generator) Custom Assets Generator (Wake words, fonts, emojis, backgrounds)
-
-## About the Project
-
-This is an open-source ESP32 project, released under the MIT license, allowing anyone to use it for free, including for commercial purposes.
-
-We hope this project helps everyone understand AI hardware development and apply rapidly evolving large language models to real hardware devices.
-
-If you have any ideas or suggestions, please feel free to raise Issues or join the QQ group: 1011329060
-
-## Star History
-
-<a href="https://star-history.com/#78/xiaozhi-esp32&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
- </picture>
-</a> 
+本项目基于 [ESP Friends EchoEar 小智工程](https://gitee.com/esp-friends/esp-echo-ear-xiaozhi) 和 [小智 ESP32](https://github.com/78/xiaozhi-esp32)。许可见仓库 `LICENSE`，各组件保留其原始许可声明。
