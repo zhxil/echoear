@@ -14,6 +14,7 @@
 #include <font_awesome.h>
 #include <wifi_station.h>
 #include <wifi_configuration_ap.h>
+#include <esp_wifi.h>
 #include <ssid_manager.h>
 #include "afsk_demod.h"
 
@@ -32,9 +33,38 @@ std::string WifiBoard::GetBoardType() {
     return "wifi";
 }
 
+// 添加清理函数
+void WifiBoard::CleanupNetworkInterfaces() {
+    // 停止并清理WiFi station
+
+     // 检查WiFi是否初始化
+    wifi_mode_t mode;
+    esp_err_t err = esp_wifi_get_mode(&mode);
+    if (err == ESP_OK) {
+        // 停止WiFi相关服务
+        esp_wifi_scan_stop();
+        esp_wifi_disconnect();
+
+        // Reset the WiFi stack
+        auto& wifi_station = WifiStation::GetInstance();
+        wifi_station.Stop();
+        
+        // 停止并清理WiFi configuration AP
+        auto& wifi_ap = WifiConfigurationAp::GetInstance();
+        wifi_ap.Stop();
+    }
+    
+    
+    // 等待资源释放
+    vTaskDelay(pdMS_TO_TICKS(500));
+}
+
 void WifiBoard::EnterWifiConfigMode() {
     auto& application = Application::GetInstance();
     application.SetDeviceState(kDeviceStateWifiConfiguring);
+
+    // 清理网络接口
+    CleanupNetworkInterfaces();
 
     auto& wifi_ap = WifiConfigurationAp::GetInstance();
     wifi_ap.SetLanguage(Lang::CODE);
@@ -85,6 +115,11 @@ void WifiBoard::StartNetwork() {
         EnterWifiConfigMode();
         return;
     }
+
+    // 清理网络接口
+    CleanupNetworkInterfaces();
+     // 延迟确保资源完全释放
+    vTaskDelay(pdMS_TO_TICKS(500));
 
     auto& wifi_station = WifiStation::GetInstance();
     wifi_station.OnScanBegin([this]() {
